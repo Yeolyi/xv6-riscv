@@ -1,3 +1,5 @@
 {
-    "explorer.excludeGitIgnore": true
+    "explorer.excludeGitIgnore": true,
+    "editor.formatOnPaste": false,
+    "editor.formatOnSave": false
 }

@@ -80,7 +80,7 @@ runcmd(struct cmd *cmd)
     fprintf(2, "exec %s failed\n", ecmd->argv[0]);
     break;
 
-  case REDIR:
+  case REDIR: // 이 시점에는 이미 fork가 됐고 runcmd가 exec를 호출한다
     rcmd = (struct redircmd*)cmd;
     close(rcmd->fd);
     if(open(rcmd->file, rcmd->mode) < 0){
@@ -98,6 +98,8 @@ runcmd(struct cmd *cmd)
     runcmd(lcmd->right);
     break;
 
+  // the shell may create a tree of processes.
+  // The leaves of this tree are commands and the interior nodes are processes that wait until the left and right children complete.
   case PIPE:
     pcmd = (struct pipecmd*)cmd;
     if(pipe(p) < 0)
@@ -167,6 +169,7 @@ main(void)
     }
     if(fork1() == 0)
       runcmd(parsecmd(buf));
+    // parent wait the child runs the command
     wait(0);
   }
   exit(0);
