@@ -1,3 +1,5 @@
+// Serial-port console device driver
+
 //
 // low-level driver routines for 16550a UART.
 //

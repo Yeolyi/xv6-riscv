@@ -1,4 +1,6 @@
 // Format of an ELF executable file
+// An ELF binary consists of an ELF header, struct elfhdr, 
+// followed by a sequence of program section headers, struct proghdr.
 
 #define ELF_MAGIC 0x464C457FU  // "\x7FELF" in little endian
 
@@ -22,6 +24,8 @@ struct elfhdr {
 };
 
 // Program section header
+// xv6 programs have two program section headers: 
+// one for instructions and one for data.
 struct proghdr {
   uint32 type;
   uint32 flags;

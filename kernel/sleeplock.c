@@ -1,4 +1,5 @@
 // Sleeping locks
+// Locks that yield the CPU
 
 #include "types.h"
 #include "riscv.h"

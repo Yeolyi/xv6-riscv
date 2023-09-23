@@ -19,6 +19,7 @@ int flags2perm(int flags)
     return perm;
 }
 
+// The only error cases in exec happen during the creation of the image?
 int
 exec(char *path, char **argv)
 {
@@ -46,6 +47,7 @@ exec(char *path, char **argv)
   if(elf.magic != ELF_MAGIC)
     goto bad;
 
+  // allocates a new page table with no user mappings
   if((pagetable = proc_pagetable(p)) == 0)
     goto bad;
 
@@ -57,14 +59,17 @@ exec(char *path, char **argv)
       continue;
     if(ph.memsz < ph.filesz)
       goto bad;
+    // 64bit overflow check
     if(ph.vaddr + ph.memsz < ph.vaddr)
       goto bad;
     if(ph.vaddr % PGSIZE != 0)
       goto bad;
     uint64 sz1;
+    // allocates memory for each ELF segments
     if((sz1 = uvmalloc(pagetable, sz, ph.vaddr + ph.memsz, flags2perm(ph.flags))) == 0)
       goto bad;
     sz = sz1;
+    // load each segment to memory
     if(loadseg(pagetable, ph.vaddr, ip, ph.off, ph.filesz) < 0)
       goto bad;
   }
@@ -77,6 +82,7 @@ exec(char *path, char **argv)
 
   // Allocate two pages at the next page boundary.
   // Make the first inaccessible as a stack guard.
+  // This inaccessible page also allows exec to deal with arguments that are too large
   // Use the second as the user stack.
   sz = PGROUNDUP(sz);
   uint64 sz1;

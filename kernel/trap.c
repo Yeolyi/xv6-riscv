@@ -1,3 +1,5 @@
+// C code to handle and return from traps and interrupts
+
 #include "types.h"
 #include "param.h"
 #include "memlayout.h"

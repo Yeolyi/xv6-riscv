@@ -1,3 +1,5 @@
+// 프로레스가 가지는 state들
+
 // Saved registers for kernel context switches.
 struct context {
   uint64 ra;

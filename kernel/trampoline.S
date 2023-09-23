@@ -1,3 +1,5 @@
+# Assembly code to switch between user and kernel
+
         #
         # low-level code to handle traps from user space into
         # the kernel, and returns from kernel to user.

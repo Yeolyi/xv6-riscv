@@ -1,3 +1,5 @@
+// Connect to the user keyboard and screen
+
 //
 // Console input and output, to the uart.
 // Reads are line at a time.

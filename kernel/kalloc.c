@@ -30,10 +30,12 @@ kinit()
   freerange(end, (void*)PHYSTOP);
 }
 
+// initializes the free list to hold every page between the end of the kernel and PHYSTOP.
 void
 freerange(void *pa_start, void *pa_end)
 {
   char *p;
+  // encure frees only aligned physical address(4096-byte boundary)
   p = (char*)PGROUNDUP((uint64)pa_start);
   for(; p + PGSIZE <= (char*)pa_end; p += PGSIZE)
     kfree(p);
@@ -58,6 +60,7 @@ kfree(void *pa)
 
   acquire(&kmem.lock);
   r->next = kmem.freelist;
+  // 가장 최근에 해제된게 freelist에 있는 방식인듯
   kmem.freelist = r;
   release(&kmem.lock);
 }

@@ -1,3 +1,5 @@
+// Process-related system calls
+
 #include "types.h"
 #include "riscv.h"
 #include "defs.h"

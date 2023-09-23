@@ -1,3 +1,6 @@
+// Manage page tables and address spaces
+// Most of the xv6 code for manipulating address spaces and page tables resides in here
+
 #include "param.h"
 #include "types.h"
 #include "memlayout.h"
@@ -21,6 +24,7 @@ kvmmake(void)
 {
   pagetable_t kpgtbl;
 
+  // allocates a page of physical memory to hold the root page-table page 
   kpgtbl = (pagetable_t) kalloc();
   memset(kpgtbl, 0, PGSIZE);
 
@@ -62,6 +66,9 @@ void
 kvminithart()
 {
   // wait for any previous writes to the page table memory to finish.
+  // 켜져있지 않았는데 flush가 필요함? 아 멀티코어라서 필요한건가?
+  // 그럼 왜 전 후 다 해주는거지
+  // The RISC-V has an instruction sfence.vma that flushes the current CPU’s TLB.
   sfence_vma();
 
   w_satp(MAKE_SATP(kernel_pagetable));

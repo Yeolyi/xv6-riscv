@@ -1,4 +1,5 @@
 // Physical memory layout
+// constants for xv6's kernel memory layout
 
 // qemu -machine virt is set up like this,
 // based on qemu's hw/riscv/virt.c:

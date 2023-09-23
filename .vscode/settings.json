@@ -1,5 +1,6 @@
 {
     "explorer.excludeGitIgnore": true,
     "editor.formatOnPaste": false,
-    "editor.formatOnSave": false
+    "editor.formatOnSave": false,
+    "C_Cpp.errorSquiggles": "disabled"
 }

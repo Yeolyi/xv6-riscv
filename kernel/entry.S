@@ -1,3 +1,5 @@
+# Very first boot instructions.
+
         # qemu -kernel loads the kernel at 0x80000000
         # and causes each hart (i.e. CPU) to jump there.
         # kernel.ld causes the following code to
@@ -9,8 +11,13 @@ _entry:
         # stack0 is declared in start.c,
         # with a 4096-byte stack per CPU.
         # sp = stack0 + (hartid * 4096)
-        la sp, stack0
+        
+        # la t0, SYMBOL is an assembler pesudo instruction that puts the address of SYMBOL into t0
+        la sp, stack0 
         li a0, 1024*4
+
+        # assembly language instruction used to read the Machine Hart ID (mhartid) CSR (Control and Status Register) and store its value in register a1.
+        # - gpt
         csrr a1, mhartid
         addi a1, a1, 1
         mul a0, a0, a1

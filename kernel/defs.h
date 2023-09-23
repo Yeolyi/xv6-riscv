@@ -1,3 +1,5 @@
+// inter-module interfaces
+
 struct buf;
 struct context;
 struct file;

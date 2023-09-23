@@ -1,4 +1,5 @@
 // Mutual exclusion spin locks.
+// Locks that don't yield the CPU.
 
 #include "types.h"
 #include "param.h"

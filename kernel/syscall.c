@@ -1,3 +1,5 @@
+// Dispatch system calls to handling function
+
 #include "types.h"
 #include "param.h"
 #include "memlayout.h"

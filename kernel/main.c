@@ -1,3 +1,5 @@
+// Control initialization of other modules during boot
+
 #include "types.h"
 #include "param.h"
 #include "memlayout.h"
@@ -17,7 +19,7 @@ main()
     printf("xv6 kernel is booting\n");
     printf("\n");
     kinit();         // physical page allocator
-    kvminit();       // create kernel page table
+    kvminit();       // create kernel page table, This call occurs before xv6 has enabled paging on the RISC-V, so addresses refer directly to physical memory
     kvminithart();   // turn on paging
     procinit();      // process table
     trapinit();      // trap vectors

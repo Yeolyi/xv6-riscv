@@ -1,3 +1,5 @@
+// Processes and scheduling
+
 #include "types.h"
 #include "param.h"
 #include "memlayout.h"
@@ -229,6 +231,9 @@ uchar initcode[] = {
 };
 
 // Set up first user process.
+// The first process executes a small program written in RISC-V assembly, 
+// which makes the first system call in xv6. 
+// 위에 있는 initcode 배열을 쓰고, 이 내용은 initcode.S의 내용인듯?
 void
 userinit(void)
 {
