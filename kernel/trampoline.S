@@ -26,11 +26,13 @@ uservec:
         # traps from user space start here,
         # in supervisor mode, but with a
         # user page table.
-        #
 
         # save user a0 in sscratch so
         # a0 can be used to get at TRAPFRAME.
+        # sscratch help avoid overwriting user registers before saving them
         csrw sscratch, a0
+
+        # Now uservec has one register(a0) to play with
 
         # each process has a separate p->trapframe memory area,
         # but it's mapped to the same virtual address

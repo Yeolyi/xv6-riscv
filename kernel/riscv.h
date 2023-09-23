@@ -42,9 +42,11 @@ w_mepc(uint64 x)
 
 // Supervisor Status Register, sstatus
 
+// controls to what mode sret returns.
 #define SSTATUS_SPP (1L << 8)  // Previous mode, 1=Supervisor, 0=User
 #define SSTATUS_SPIE (1L << 5) // Supervisor Previous Interrupt Enable
 #define SSTATUS_UPIE (1L << 4) // User Previous Interrupt Enable
+// If the kernel clears SIE, the RISC-V will defer 'device interrupts' until the kernel sets SIE.
 #define SSTATUS_SIE (1L << 1)  // Supervisor Interrupt Enable
 #define SSTATUS_UIE (1L << 0)  // User Interrupt Enable
 
@@ -114,8 +116,8 @@ w_mie(uint64 x)
 }
 
 // supervisor exception program counter, holds the
-// instruction address to which a return from
-// exception will go.
+// instruction address to which a return from exception will go.
+// sret instruction copies sepc to the pc.
 static inline void 
 w_sepc(uint64 x)
 {
@@ -162,6 +164,7 @@ w_mideleg(uint64 x)
 
 // Supervisor Trap-Vector Base Address
 // low two bits are mode.
+// kernel writes address of its trap handler here
 static inline void 
 w_stvec(uint64 x)
 {
@@ -224,6 +227,7 @@ w_mscratch(uint64 x)
 }
 
 // Supervisor Trap Cause
+// reason for the trap
 static inline uint64
 r_scause()
 {

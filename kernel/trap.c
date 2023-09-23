@@ -34,7 +34,7 @@ trapinithart(void)
 //
 // handle an interrupt, exception, or system call from user space.
 // called from trampoline.S
-//
+// determine cause of the trap, process, return
 void
 usertrap(void)
 {
@@ -42,6 +42,15 @@ usertrap(void)
 
   if((r_sstatus() & SSTATUS_SPP) != 0)
     panic("usertrap: not from user mode");
+
+  // 여기 이전 코드(trampoline.S 포함) interrupt나면 어떡함? 아직 stvec 안바꿨는디
+  /*
+   There’s a window of time when the kernel has started executing but stvec is still set to uservec, 
+   and it’s crucial that no device interrupt occur during that window. 
+   Luckily the RISC-V always disables interrupts when it starts to take a trap, 
+   and xv6 doesn’t enable them again until after it sets stvec.
+  */
+  // 그럼 그 사이에 있던 interrupt는 queue가 되나?
 
   // send interrupts and exceptions to kerneltrap(),
   // since we're now in the kernel.
@@ -146,6 +155,8 @@ kerneltrap()
   if(intr_get() != 0)
     panic("kerneltrap: interrupts enabled");
 
+  // If the trap isn't a device interrupt,
+  // it must be an exception, and that is always fatal error if it occurs in the xv6 kernel
   if((which_dev = devintr()) == 0){
     printf("scause %p\n", scause);
     printf("sepc=%p stval=%p\n", r_sepc(), r_stval());
@@ -153,8 +164,9 @@ kerneltrap()
   }
 
   // give up the CPU if this is a timer interrupt.
+  // schedular thread가 아닌것도 여기서 확인해야되는건가? (48p)
   if(which_dev == 2 && myproc() != 0 && myproc()->state == RUNNING)
-    yield();
+    yield(); // chapter 7
 
   // the yield() may have caused some traps to occur,
   // so restore trap registers for use by kernelvec.S's sepc instruction.

@@ -334,13 +334,108 @@ CPU가 special code로 control transfer하는 경우:
 - exception
 - device interrupt
 
+(timer interrupt는?)
+
 This book uses trap as a generic term for these situations.
 
 We often want traps to be transparent.
 
 Xv6 handles all traps in the kernel; traps are not delivered to user code.
 
+Xv6 trap handling proceeds in four stages: 
+
+1. hardware actions taken by the RISC-V CPU, 
+1. some assembly instructions that prepare the way for kernel C code, 
+1. a C function that decides what to do with the trap, 
+1. system call or device-driver service routine. 
+
+it turns out to be convenient to have separate code for three distinct cases: 
+
+- traps from user space
+- traps from kernel space
+- and timer interrupts. 
+
+Kernel code (assembler or C) that processes a trap is often called a handler; the first handler instructions are usually written in assembler (rather than C) and are sometimes called a **vector**.
+
+### 4.1 RISC-V trap machinery
+
+Each RISC-V CPU has a set of control registers that the kernel writes to tell the CPU how to handle traps, and that the kernel can read to find out about a trap that has occurred. 
+
+머신 모드용 control register도 있지만 타이머 인터럽트 등 제한된 상황에서만 사용한다. 
+
+Each CPU on a multi-core chip has its own set of these registers, and more than one CPU may be handling a trap at any given time.
+
+Note that the CPU doesn’t switch to the kernel page table, doesn’t switch to a stack in the kernel, and doesn’t save any registers other than the pc.
+
+### 4.2 Traps from user space
+
+uservec(trampoline.S) -> usertrap(trap.c) -> usertrapret(trap.c) -> userret(trampoline.S)
+
+RISC-V 하드웨어가 page table을 바꿔주지 않기 때문에 stvec의 주소는 user page table에서도 유효한 주소여야한다. 또한 trap handler에서 커널 페이지로 바뀌어야하기 때문에 kernel page table에서도 유효해야한다. 이를 위해 trampoline 페이지를 사용한다. 여기에 uservec이 있다. 
+
+The kernel allocates, for each process, a page of memory for a trapframe structure that (among other things) has space to save the 32 user registers (kernel/proc.h:43)
+
+The process’s p->trapframe also points to the trapframe, though at its physical address so the kernel can use it through the kernel page table.
+
+### 4.3 Code: Calling system calls
+
+ecall -> uservec -> usertrap -> syscall
+
+syscall (kernel/syscall.c:132) retrieves the system call number from the saved a7 **in the trapframe** and uses it to index into syscalls.
+
+예시: initCode.S
+
+### 4.4 Code: System call arguments
+
+The kernel functions argint, argaddr, and argfd retrieve the n ’th system call argument from the trap frame as an integer, pointer, or a file descriptor. 
+
+몇몇 system call은 exec처럼 유저 공간에 있는 포인터 배열등을 인자로 전달할 수 있다. 이경우 악의적인 포인터일 수도 있고, user page table을 사용해야한다는 문제가 있다. 이에 fetchstr과 copyinstr를 사용한다. 
+
+### 4.5 Traps from kernel space
+
+When the kernel is executing on a CPU, the kernel points stvec to the assembly code at kernelvec (kernel/kernelvec.S:12).
+
+kernelvec saves the registers on the stack of the interrupted kernel thread, which makes sense because the register values belong to that thread. This is particularly important if the trap causes a switch to a different thread – in that case the trap will actually return from the stack of the new thread, leaving the interrupted thread’s saved registers safely on its stack??
+
+**It’s worth thinking through how the trap return happens if kerneltrap called yield due to a timer interrupt.**
+
+### 4.6 Page-fault exceptions
+
+Xv6’s response to exceptions is quite boring: if an exception happens in user space, the kernel kills the faulting process. If an exception happens in the kernel, the kernel panics.
+
+실제로는 잘 활용하는데, page fault를 통해 copy-on-write fork를 구현할 수 있다. 
+
+RISC-V에는 아래의 page fault가 있다. 
+
+- load page fault
+- store page fault
+- instruction page fault
+
+scause에 원인이 있고 stval에 문제가 된 주소가 있다. 
+
+...The kernel’s trap handler responds by allocating a new page of physical memory and copying into it the physical page that the faulted address maps to. Copy-on-write requires book-keeping to help decide when physical pages can be freed, since each page can be referenced
+
+Another widely-used feature is called lazy allocation. Lazy allocation allows this cost to be spread over time. On the other hand, lazy allocation incurs the extra overhead of page faults, which involve a kernel/user transi- tion.
+
+Yet another widely-used feature that exploits page faults is demand paging. To improve response time, a modern kernel creates the page table for the user address space, but marks the PTEs for the pages invalid.
+
+The programs running on a computer may need more memory than the computer has RAM. To cope gracefully, the operating system may implement paging to disk.
+
+...The idea is to store only a fraction of user pages in RAM, and to store the rest on disk in a paging area.
+
+Other features that combine paging and page-fault exceptions include automatically extending stacks and memory-mapped files.
+
+### 4.7 Real world
+
+And the trap handler is initially ignorant of useful facts such as the identity of the process that’s running or the address of the kernel page table??
+
+The need for special trampoline pages could be eliminated if kernel memory were mapped into every process’s user page table. ? 이랬다가 지금 형태로 바뀐거라고 그러지 않았나. Xv6 avoids them in order to reduce the chances of security bugs in the kernel due to inadvertent use of user pointers, and to reduce some complexity that would be required to ensure that user and kernel virtual addresses don’t overlap.
+
+https://www.sobyte.net/post/2022-01/xv6-riscv-kpti/
+
 ## 5. Interupts and device drivers
+
+A driver is the code in an operating system that manages a particular device: it configures the device hardware, tells the device to perform operations, handles the resulting interrupts, and interacts with processes that may be waiting for I/O from the device.
 
 ## 6. Locking
 

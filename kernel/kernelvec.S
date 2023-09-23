@@ -2,6 +2,9 @@
         # interrupts and exceptions while in supervisor
         # mode come here.
         #
+
+        # Since xv6 is already in the kernel,
+        # kernelvec can rely on satp being set to the kernel page table
         
         # the current stack is a kernel stack.
         # push all registers, call kerneltrap().
