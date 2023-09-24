@@ -4,10 +4,13 @@
 # 
 # Save current registers in old. Load from new.	
 
+# Saves only callee-saved registers
+# the C compiler generates code in the caller to save caller-saved registers on the stack.
+
 
 .globl swtch
 swtch:
-        sd ra, 0(a0)
+        sd ra, 0(a0) # PC 대신 ra 저장, return address
         sd sp, 8(a0)
         sd s0, 16(a0)
         sd s1, 24(a0)
@@ -39,4 +42,7 @@ swtch:
         
         ret
 
-	
+# returns to the instructions pointed to by the restored ra register, 
+# that is, the instruction from which the new thread previously called swtch. 
+# In addition, it returns on the new thread’s stack, 
+# since that’s where the restored sp points.	

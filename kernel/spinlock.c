@@ -22,6 +22,8 @@ initlock(struct spinlock *lk, char *name)
 void
 acquire(struct spinlock *lk)
 {
+  // lk->locked 설정 전에 push_off를 해야되는데, 안그러면 lock은 가졌는데 interrupt는 켜져있는
+  // window가 잠시 생길 수 있다. pop_off도 반대로 마찬가지.
   push_off(); // disable interrupts to avoid deadlock.
   if(holding(lk))
     panic("acquire");
@@ -30,6 +32,7 @@ acquire(struct spinlock *lk)
   //   a5 = 1
   //   s1 = &lk->locked
   //   amoswap.w.aq a5, a5, (s1)
+  //   the return value is the old (swapped) contents of lk->locked.
   while(__sync_lock_test_and_set(&lk->locked, 1) != 0)
     ;
 

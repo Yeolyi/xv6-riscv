@@ -24,6 +24,7 @@ acquiresleep(struct sleeplock *lk)
 {
   acquire(&lk->lk);
   while (lk->locked) {
+    // atomically yields the CPU and release the spinlock
     sleep(lk, &lk->lk);
   }
   lk->locked = 1;

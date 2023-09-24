@@ -1,3 +1,7 @@
+// Console driver, simple illustration of driver structure
+// accepts characters typed by a human, 
+// via the UART serial-port hardware attached to the RISC-V.
+
 // Connect to the user keyboard and screen
 
 //
@@ -134,6 +138,9 @@ consoleread(int user_dst, uint64 dst, int n)
 // do erase/kill processing, append to cons.buf,
 // wake up consoleread() if a whole line has arrived.
 //
+// The job of consoleintr is to accumulate input characters in cons.buf until a whole line arrives.
+// holds cons.lock while calling wakeup, which acquires the waiting process’s lock in order to wake it up
+// 따라서 데드락 관련해서 cons.lock must be acquired before any process lock.
 void
 consoleintr(int c)
 {
@@ -180,6 +187,7 @@ consoleintr(int c)
   release(&cons.lock);
 }
 
+// main calls this to initialize UART hardware
 void
 consoleinit(void)
 {

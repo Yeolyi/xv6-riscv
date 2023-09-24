@@ -104,6 +104,9 @@ allocpid()
   return pid;
 }
 
+// There is one case when the scheduler’s call to swtch does not end up in sched.
+// allocproc sets the context ra register of a new process to forkret
+
 // Look in the process table for an UNUSED proc.
 // If found, initialize state required to run in the kernel,
 // and return with p->lock held.
@@ -458,12 +461,15 @@ scheduler(void)
     intr_on();
 
     for(p = proc; p < &proc[NPROC]; p++) {
+      // breaks the convention(73p) 
       acquire(&p->lock);
       if(p->state == RUNNABLE) {
         // Switch to chosen process.  It is the process's job
         // to release its lock and then reacquire it
         // before jumping back to us.
+        // (process's job이라고 유저가 하라는 뜻은 아니고, kernel thread도 프로세스에 속하긴 하니까?)
         p->state = RUNNING;
+        // per-CPU current process variable
         c->proc = p;
         swtch(&c->context, &p->context);
 
@@ -499,6 +505,8 @@ sched(void)
     panic("sched interruptible");
 
   intena = mycpu()->intena;
+  // switch to per-CPU schedular context
+  // 이전에 schedular()에서 swtch를 호출할 때 백업됨
   swtch(&p->context, &mycpu()->context);
   mycpu()->intena = intena;
 }
@@ -550,7 +558,16 @@ sleep(void *chan, struct spinlock *lk)
   // so it's okay to release lk.
 
   acquire(&p->lock);  //DOC: sleeplock1
+
+  // Holding lk was necessary in the caller
+  // it ensured that no other process could start a call to wakeup(chan)
   release(lk);
+
+  // Now that sleep holds p->lock, it is safe to releas lk
+  // some other process may start a call to wakeup(chan), 
+  // but wakeup will wait to acquire p->lock
+  // ant thus will wait until sleep has finished putting the process to sleep,
+  // keeping the wakeup from missing the sleep
 
   // Go to sleep.
   p->chan = chan;

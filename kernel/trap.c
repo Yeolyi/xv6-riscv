@@ -174,6 +174,7 @@ kerneltrap()
   w_sstatus(sstatus);
 }
 
+// timer interrupt handler
 void
 clockintr()
 {
@@ -182,6 +183,8 @@ clockintr()
   wakeup(&ticks);
   release(&tickslock);
 }
+
+// device driver 관련
 
 // check if it's an external interrupt or software interrupt,
 // and handle it.

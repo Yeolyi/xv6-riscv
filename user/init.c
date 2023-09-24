@@ -16,6 +16,7 @@ main(void)
 {
   int pid, wpid;
 
+  // The xv6 shell reads from the console by way of a file descriptor opened by init.c
   if(open("console", O_RDWR) < 0){
     mknod("console", CONSOLE, 0);
     open("console", O_RDWR);

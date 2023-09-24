@@ -35,6 +35,7 @@ struct {
   struct buf head;
 } bcache;
 
+// Called by main
 void
 binit(void)
 {
@@ -45,6 +46,7 @@ binit(void)
   // Create linked list of buffers
   bcache.head.prev = &bcache.head;
   bcache.head.next = &bcache.head;
+  // .buf는 여기서만 쓰고 나머지는 bcache.head를 사용한다. 
   for(b = bcache.buf; b < bcache.buf+NBUF; b++){
     b->next = bcache.head.next;
     b->prev = &bcache.head;

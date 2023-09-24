@@ -51,6 +51,8 @@ extern volatile int panicked; // from printf.c
 
 void uartstart();
 
+// configures the UART to generate a receive interrupt when the UART receives each byte of input, 
+// and a transmit complete interrupt each time the UART finishes sending a byte of output
 void
 uartinit(void)
 {
